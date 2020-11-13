@@ -1,0 +1,10 @@
+<launch>
+  <env name="ROSCONSOLE_FORMAT" value="[${node}] : ${message}"/>
+  <include file="$(find mission)/launch/control_tunnel.launch"/>
+  <node pkg="mission" type="construction.py" name="Construction_Mission" output="screen"/>
+  <node pkg="mission" type="lane_tracking.py" name="Lane_Tracking" output="screen"/>
+  <node pkg="mission" type="parking.py" name="Parking_Mission" output="screen"/>
+  <node pkg="mission" type="tunnel.py" name="Tunnel_Mission" output="screen"/>
+</launch>
+
+

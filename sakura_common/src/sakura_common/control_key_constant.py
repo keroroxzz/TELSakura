@@ -1,0 +1,13 @@
+#!/usr/bin/env python
+X=99
+Y=100
+B=97
+A=96
+R1=103
+R2=105
+R3=107
+L1=102
+L2=104
+L3=106
+START=108
+SELECT=109

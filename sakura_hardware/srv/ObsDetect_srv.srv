@@ -1,0 +1,4 @@
+float32 angle
+float32 distance
+---
+obstacle_msg data

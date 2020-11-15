@@ -1,6 +1,6 @@
 #!/bin/bash
 
-ros_add=192.168.51.51 
+ros_add=192.168.0.193 
 
 count=0
 
@@ -19,15 +19,17 @@ do
     sleep 1
 done
 
+echo "nano" | sudo -S sh -c 'echo 100 > /sys/devices/pwm-fan/target_pwm'
+
 #pick the proper uri and hostname
 if [ -n "$net" ]; then
     export ROS_MASTER_URI=http://${ros_add}:11311
     export ROS_HOSTNAME=${ros_add}
+    roslaunch sakura_mission awake_control.launch
 else
     export ROS_MASTER_URI=http://localhost:11311
     export ROS_HOSTNAME=localhost
+    roslaunch sakura_mission awake_auto.launch
 fi
 
-echo "nano" | sudo -S sh -c 'echo 100 > /sys/devices/pwm-fan/target_pwm'
 
-roslaunch sakura_mission awake.launch

@@ -1,6 +1,7 @@
 <launch>
   <env name="ROSCONSOLE_FORMAT" value="[${node}] : ${message}"/>
-  <node pkg="sakura_mission" type="mission2.py" name="mission2" output="screen"/>
+  <node pkg="sakura_mission" type="first_mission.py" name="first_mission" output="screen"/>
+  <node pkg="sakura_mission" type="second_mission.py" name="second_mission" output="screen"/>
 </launch>
 
 

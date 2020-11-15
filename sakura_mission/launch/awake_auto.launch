@@ -1,0 +1,7 @@
+<launch>
+  <env name="ROSCONSOLE_FORMAT" value="[${node}] : ${message}"/>
+  <include file="$(find sakura_mission)/launch/activate.launch"/>
+  <include file="$(find sakura_hardware)/launch/activate.launch"/>
+</launch>
+
+

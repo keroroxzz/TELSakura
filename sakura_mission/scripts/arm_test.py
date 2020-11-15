@@ -43,7 +43,8 @@ class Ballon():
 	def test(self):
 		
 		self.arm.settarget(t0=0.0,t1=0.0,t2=0,t3=0.0,t4=0,tf=0,TIME=1)
-		self.arm.settarget(t0=0.45,t1=0.0,t2=-1.2,t3=-1.2,t4=0,tf=0,TIME=5)
+		self.arm.settarget(t0=0.45,t1=0.0,t2=0.0,t3=-1.57,t4=0,tf=0,TIME=5)
+		self.arm.settarget(t0=0.45,t1=0.0,t2=-0.5,t3=-1.57,t4=0,tf=0,TIME=1)
 		self.arm.grep()
 		self.arm.settarget(t0=0,t1=0,t2=0,t3=0,t4=0,tf=0.5,TIME=3)
 

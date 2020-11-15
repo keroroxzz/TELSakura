@@ -25,7 +25,7 @@ yaw=0
 goal_yaw=1.570
 start=0
 pEx=0
-STATUS=2
+STATUS=0
 R=robot_arm()
 
 def publish(pub,T):
@@ -39,8 +39,10 @@ def status_callback(data):
     STATUS=data.data
 
 def callback(data):
+  global STATUS
   if(STATUS!=2):
     return
+    
   global start
   grep()
   if(start<10):

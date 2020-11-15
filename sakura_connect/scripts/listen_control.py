@@ -8,7 +8,7 @@ from std_msgs.msg import Int32
 from std_msgs.msg import Bool
 from geometry_msgs.msg import Twist
 import numpy as np
-import sakura_common.control_key_constant
+import control_key_constant 
 from sakura_common.xh_arm import robot_arm
 import tf.transformations
 import math

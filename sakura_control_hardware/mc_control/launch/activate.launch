@@ -1,0 +1,11 @@
+<launch>
+  <env name="ROSCONSOLE_FORMAT" value="[${node}] : ${message}"/>
+
+  <node pkg="testing" type="listen_control.py" name="listen_control" output="screen"/>
+  <node pkg="mc_control" type="mc_control.py" name="mc_control" output="screen"/>
+  <node pkg="rot_control" type="rot_control.py" name="rot_control" output="screen"/>
+  <node pkg="arm_control" type="arm_control.py" name="arm_control" output="screen"/>
+  <node pkg="testing" type="talker2.py" name="talker2" output="screen"/>
+</launch>
+
+

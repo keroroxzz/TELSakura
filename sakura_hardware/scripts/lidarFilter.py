@@ -40,7 +40,7 @@ class LidarFilter:
 		self.ground = np.zeros((360))
 
 		self.rot = rospy.Subscriber('/sakura/rot/command', Float64, self.rotCallBack, queue_size = 1)
-		self.lidarSub = rospy.Subscriber('/sakura/scan', LaserScan, self.lidarCallback, queue_size = 1)
+		self.lidarSub = rospy.Subscriber('/scan', LaserScan, self.lidarCallback, queue_size = 1)
 		self.lidarPub = rospy.Publisher('/sakura/re_scan', LaserScan, queue_size = 1)
 		self.sdPub = rospy.Publisher('/sakura/safe_dir', Float64, queue_size = 1)
 

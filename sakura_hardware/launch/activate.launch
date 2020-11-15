@@ -1,9 +1,12 @@
 <launch>
   <env name="ROSCONSOLE_FORMAT" value="[${node}] : ${message}"/>
-  <node pkg="sakura_hardware" type="lidarFilter.py" name="Lidar_Filter" output="screen"/>
+  <!--node pkg="sakura_hardware" type="lidarFilter.py" name="Lidar_Filter" output="screen"/-->
   <node pkg="sakura_hardware" type="lidarSrv.py" name="Lidar_Service" output="screen"/>
   <node pkg="sakura_hardware" type="camera.py" name="Camera" output="screen"/>
-  <node pkg="hls_lfcd_lds_driver" type="hlds_laser_publisher.py" name="Camera" output="screen"/>
+  <node pkg="mc_control" type="mc_control.py" name="mc_control" output="screen"/>
+  <node pkg="arm_control" type="arm_control.py" name="arm_control" output="screen"/>
+  <node pkg="rot_control" type="rot_control.py" name="rot_control" output="screen"/>
+  <node pkg="hls_lfcd_lds_driver" type="hlds_laser_publisher" name="hlds_laser_publisher" output="screen"/>
 </launch>
 
 

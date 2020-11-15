@@ -5,7 +5,7 @@
 #Version : 1.0
 
 import rospy
-from lidar.srv import ObsDetect_srv
+from sakura_hardware.srv import ObsDetect_srv
 
 #services
 obsDetect = rospy.ServiceProxy('lidarObstacle_Srv',ObsDetect_srv)

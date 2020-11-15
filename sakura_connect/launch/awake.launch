@@ -1,8 +1,0 @@
-<launch>
-  <env name="ROSCONSOLE_FORMAT" value="[${node}] : ${message}"/>
-  <include file="$(find lidar)/launch/activate.launch"/>
-  <include file="$(find mission)/launch/activate.launch"/>
-  <include file="$(find vision)/launch/activate.launch"/>
-</launch>
-
-

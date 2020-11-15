@@ -2,7 +2,7 @@
 import rospy
 from std_msgs.msg import String
 from std_msgs.msg import Bool
-from sensor_msgs.msg import CompressedImage
+from sensor_msgs.msg import Image,CompressedImage
 from cv_bridge import CvBridge,CvBridgeError
 import cv2
 import numpy as np
@@ -50,6 +50,7 @@ def callback(data):
     global flip
     flip=data.data
 pub=rospy.Publisher('/sakura/camera_image/image/compressed',CompressedImage,queue_size=10)
+pub_img=rospy.Publisher('/sakura/camera_image/image',Image,queue_size=10)
 sub=rospy.Subscriber('/sakura/sakura_state',Bool,callback,queue_size=1)
 rospy.init_node('talker',anonymous=True)
 cap=cv2.VideoCapture(0)
@@ -63,11 +64,12 @@ cap.set(cv2.CAP_PROP_FPS,30)
 ret,img=cap.read()
 while (not rospy.is_shutdown()):
   ret,img=cap.read()
-  print(flip)
-  if(flip):
+  #print(flip)
+  if(not flip):
       img=cv2.flip(img,-1)
   pub.publish(bridge.cv2_to_compressed_imgmsg(img))
-  cv2.imshow('aaa',img)
-  cv2.waitKey(1)
+  pub_img.publish(bridge.cv2_to_imgmsg(img))
+  ##cv2.imshow('aaa',img)
+  ##cv2.waitKey(1)
 
 

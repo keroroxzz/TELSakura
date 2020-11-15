@@ -13,8 +13,8 @@ import numpy as np
 from std_msgs.msg import Float64
 from sensor_msgs.msg import LaserScan
 from sensor_msgs.msg import Image
-from sakura_lidar.srv import ObsDetect_srv,ObsDetect_srvResponse
-from sakura_lidar.msg import obstacle_msg
+from sakura_hardware.srv import ObsDetect_srv,ObsDetect_srvResponse
+from sakura_hardware.msg import obstacle_msg
 
 from supply.performance import perfmeter
 from supply.moniter import Moniter

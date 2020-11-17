@@ -1,0 +1,13 @@
+ISO: 451
+awb_mode: fluorescent
+brightness: 20
+contrast: 100
+exposure_compensation: -2
+exposure_mode: 'off'
+hFlip: false
+saturation: 51
+sharpness: 11
+shutter_speed: 0
+vFlip: false
+video_stabilisation: false
+zoom: 1.0

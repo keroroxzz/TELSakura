@@ -1,0 +1,13 @@
+<launch>
+  <env name="ROSCONSOLE_FORMAT" value="[${node}] : ${message}"/>
+
+  <rosparam command="load" file="$(find vision)/param/pi_cam.yaml" param="camera"/>
+
+  <node pkg="vision" type="detect_sign.py" name="Sign_Detection" output="screen"/>
+  <node pkg="vision" type="lane_adv.py" name="Lane_Adv" output="screen"/>
+  <node pkg="vision" type="stop.py" name="Stop_Bar_Anylizer" output="screen"/>
+  <node pkg="vision" type="traffic_light.py" name="Traffic_Light_Detection" output="screen"/>
+  <node pkg="vision" type="image_converter.py" name="Image_converter" output="screen"/>
+</launch>
+
+

@@ -50,16 +50,19 @@ class Ballon():
 
 	ballon_state = 0
 
+	arm_init = False
 	arm = robot_arm()
 	camera = camrot()
 
-	pid_x = SPPID(0.6,0.0,0.03, 0.5)
-	pid_y = SPPID(0.6,0.0,0.04, 0.5)
-	pid_z = SPPID(1.0,0.0,0.05, 0.5)
+	pid_x = SPPID(0.6,0.0,0.02, 0.5)
+	pid_y = SPPID(0.8,0.15,0.06, 0.5)
+	pid_z = SPPID(1.0,0.1,0.05, 0.5)
 
 	dx = 160
-	dy = 150
+	dy = 80
 	dr = 50
+
+	dist = 0.24
 
 	ballon_area = 0.0
 	MAX_AREA = 7578.5
@@ -70,18 +73,21 @@ class Ballon():
 		self.vel_pub = rospy.Publisher('/sakura/cmd_vel', Twist, queue_size=1)
 		self.status_pub = rospy.Publisher('/sakura/status', Int32, queue_size=10)
 
-		self.scan_sub = rospy.Subscriber('/sakura/scan', LaserScan, self.lidarListener, queue_size = 5)
+		self.scan_sub = rospy.Subscriber('/scan', LaserScan, self.lidarListener, queue_size = 5)
 		self.image_sub = rospy.Subscriber('/sakura/camera_image/image', Image, self.imageListener, queue_size = 1)
 		self.status_sub = rospy.Subscriber('/sakura/status', Int32, self.status_callback, queue_size=10)
 		self.status=1
-
-		self.camera.set(rot=0.0)
 
 	def status_callback(self, msg):
 		self.status = msg.data
 
 	def imageListener(self, image_msg):
-		img = bridge.imgmsg_to_cv2(image_msg, "bgr8")
+
+		#jump out if it is not mission 1
+		if not self.status == 1:
+			return
+
+		img = bridge.imgmsg_to_cv2(image_msg)
 		hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
 
 		#generate the mask of roi
@@ -90,15 +96,19 @@ class Ballon():
 
 		#get the roi
 		masked = cv2.bitwise_and(hsv, hsv, mask=mask)
+
+
 		for color in targets:
 
 			hue_range = inRangeHSV(masked, color[0], color[1])
-			_,cnt,_ = cv2.findContours(hue_range,cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)
+			cnt,_ = cv2.findContours(hue_range,cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)
+
+			#cvShow('ass', hue_range)
 			
 			if len(cnt) > 0:
 				M=cv2.moments(cnt[0])
 				self.ballon_area = M['m00']/self.MAX_AREA*0.2 + self.ballon_area*0.8
-				print(self.ballon_area)
+
 
 	def extractside(self, dir, lidar, step, point_set):
 
@@ -129,7 +139,7 @@ class Ballon():
 		point_set = self.extractside(dir, lidar, 1, [])
 		point_set = self.extractside(dir, lidar, -1, point_set=point_set)
 
-		if point_set is not None and len(point_set)>2:
+		if point_set is not None and len(point_set)>10:
 
 			
 			line = cv2.fitLine(np.array(point_set),cv2.DIST_L2,0,0.01,0.01)
@@ -137,11 +147,11 @@ class Ballon():
 			# find the right side to go
 			dot = line[1][0]*line[2][0] + line[0][0]*line[3][0]
 			if dot<0:
-				dx = line[1][0]*0.25+line[2][0] 
-				dy = line[0][0]*0.25+line[3][0]
+				dx = line[1][0]*self.dist+line[2][0] 
+				dy = -line[0][0]*self.dist+line[3][0]
 			else:
-				dx = -line[1][0]*0.25+line[2][0] 
-				dy = -line[0][0]*0.25+line[3][0]
+				dx = -line[1][0]*self.dist+line[2][0] 
+				dy = line[0][0]*self.dist+line[3][0]
 
 			#visualization
 			img = np.zeros((500,500))
@@ -155,8 +165,8 @@ class Ballon():
 			cv2.namedWindow('ps',cv2.WINDOW_NORMAL)
 			cv2.imshow('ps', img)
 			cv2.waitKey(1)
-
-			return dx, dy, -math.atan(line[0][0]/line[1][0])
+			line[1][0] += 0.000000000001
+			return dx, dy, -math.atan(line[0][0]/line[1][0]) + 0.09 # offset
 
 		return 0.0, 0.0, 0.0
 
@@ -165,6 +175,12 @@ class Ballon():
 		#jump out if it is not mission 1
 		if not self.status == 1:
 			return
+
+		if not self.arm_init:
+			self.arm.settarget(t0=0.0,t1=-0.2,t2=0,t3=0.0,t4=0,tf=0,TIME=1)
+			self.arm_init = True
+
+		self.camera.set(rot=0.0, cy=0.0)
 
 		if self.ballon_state==0:
 
@@ -175,17 +191,18 @@ class Ballon():
 		#Try to face to the wall vertiaclly when tracing the ballon
 		elif self.ballon_state==1:
 			dx,dy,a = self.anylize_wall(0.0, msg.ranges)
+			print(a)
 
 			cmd = Twist()
-			cmd.linear.x = self.pid_x.resp(dx*1.5) 
-			cmd.linear.y = self.pid_y.resp(dy*2.0)
-			cmd.angular.z = clamp(self.pid_z.resp(a)*5.0, 1.0, -1.0)
+			cmd.linear.x = self.pid_x.resp(dx*1.0) 
+			cmd.linear.y = self.pid_y.resp(dy*1.5)
+			cmd.angular.z = clamp(self.pid_z.resp(a)*1.25, 1.0, -1.0)
 
 			#print('ed:%.2f  ea:%.2f  eb:%.2f  posx:%.2f'%(self.pid_x.errShort(), self.pid_z.errShort(), self.pid_y.errShort(), b))
 			print('x:%.2f  y:%.2f  z:%.2f'%(cmd.linear.x, cmd.linear.y, cmd.angular.z))
 			self.vel_pub.publish(cmd)
 
-			if self.pid_x.errShort() < 0.025 and self.pid_z.errShort() < 0.075 and self.pid_y.errShort() < 0.025:
+			if self.pid_x.errShort() < 0.045 and self.pid_z.errShort() < 0.09 and self.pid_y.errShort() < 0.045:
 
 				#STOP
 				cmd.linear.x = 0.0
@@ -198,20 +215,20 @@ class Ballon():
 				self.ballon_state=3
 				self.index+=1
 
-				if self.ballon_area > 0.5:
+				if self.ballon_area > 0.3:
 
 					#Arm working
-					self.arm.settarget(t0=0.0,t1=0.0,t2=0,t3=0.0,t4=0,tf=0,TIME=1)
+					self.arm.settarget(t0=0.0,t1=-0.2,t2=0,t3=0.0,t4=0,tf=0,TIME=1)
 					self.arm.settarget(t0=0.45,t1=0.0,t2=0.0,t3=-1.57,t4=0,tf=0,TIME=2)
 					self.arm.settarget(t0=0.45,t1=0.0,t2=-0.5,t3=-1.57,t4=0,tf=0,TIME=1)
-					self.arm.grep()
-					self.arm.settarget(t0=0.45,t1=0.0,t2=-0.5,t3=-1.57,t4=1.57,tf=0,TIME=0.2)
-					self.arm.settarget(t0=0.0,t1=0.0,t2=0,t3=0.0,t4=0,tf=0,TIME=1)
+					self.arm.settarget(t0=0.45,t1=0.0,t2=-0.5,t3=-1.57,t4=0,tf=0,TIME=1)
+					self.arm.settarget(t0=0.45,t1=0.0,t2=0.0,t3=-1.57,t4=0,tf=0,TIME=1)
+					self.arm.settarget(t0=0.0,t1=-0.2,t2=0,t3=0.0,t4=0,tf=0,TIME=1)
 
 				cmd = Twist()
 				cmd.angular.z = 0.0
 				cmd.linear.x = 0.0
-				cmd.linear.y = -self.dir[self.index]*0.1
+				cmd.linear.y = -self.dir[self.index]*0.16
 
 				self.vel_pub.publish(cmd)
 				self.ballon_area = 0.0
@@ -220,7 +237,7 @@ class Ballon():
 
 		elif self.ballon_state==3:
 
-			if msg.ranges[0]>self.dist+0.1 and msg.ranges[30]>0.45 and msg.ranges[330]>0.35:
+			if msg.ranges[0]>self.dist+0.1 and (msg.ranges[30]>0.45 or msg.ranges[30]<=0.0) and (msg.ranges[330]>0.37 or msg.ranges[330]<=0.0):
 
 				# if not fin yet
 				if(self.index<2):
@@ -229,7 +246,7 @@ class Ballon():
 				else:
 					#STOP
 					cmd = Twist()
-					cmd.linear.x = 0.1
+					cmd.linear.x = 0.15
 					cmd.linear.y = 0.0
 					cmd.angular.z = 0.0
 					self.vel_pub.publish(cmd)

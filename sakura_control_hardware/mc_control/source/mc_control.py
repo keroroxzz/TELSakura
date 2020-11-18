@@ -25,33 +25,27 @@ class McControl:
     apb = 0.25
     radius = 0.025
     rate = rospy.Rate(20);
-    v_fr = 0.0
-    v_fl = 0.0
-    v_br = 0.0
-    v_bl = 0.0
+    vx = 0.0
+    vy = 0.0
+    va = 0.0
 
     def __init__(self):
         self.vel = rospy.Subscriber('/sakura/cmd_vel', Twist, callback=self.callback, queue_size=1)
 	
     def callback(self, cmd):
 
-        vx = -cmd.linear.x*15
-        vy = cmd.linear.y*15
-        va = cmd.angular.z*15
+        self.vx = cmd.linear.x*15
+        self.vy = cmd.linear.y*15
+        self.va = cmd.angular.z*0.8
 
-        #kinemetics
-        self.v_fr = int((vx + vy + va*self.apb)/self.radius)
-        self.v_fl = int((vx - vy - va*self.apb)/self.radius)
-        self.v_br = int((vx - vy + va*self.apb)/self.radius)
-        self.v_bl = int((vx + vy - va*self.apb)/self.radius)
-	print(self.v_fr, self.v_fl, self.v_br, self.v_bl)
+	print(self.vx, self.vy, self.va)
 
     def loop(self):
         
         try:
             while not rospy.is_shutdown():
 
-                ser.write('a{0}b{1}c{2}d{3}'.format(-self.v_fr, self.v_fl, -self.v_br, self.v_bl))
+                ser.write('x{0:.3f}y{1:.3f}z{2:.3f}'.format(self.vx, self.vy, self.va))
                 self.rate.sleep()
 
         except rospy.ROSInterruptException:

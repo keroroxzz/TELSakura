@@ -10,6 +10,7 @@ import math
 import cv2
 import numpy as np
 
+from std_msgs.msg import Float64
 from supply.servo import Servo
 
 rospy.init_node('rot_control')

@@ -317,10 +317,10 @@ class robot_arm():
         self.Contr()
     def Contr(self):
         self.arm_base.publish(self.theta0)
-        self.arm_j1.publish(-self.theta1)
+        self.arm_j1.publish(self.theta1)
         self.arm_j2.publish(-self.theta2)
-        self.arm_j3.publish(self.theta3)
-        self.arm_j4.publish(self.theta4)
+        self.arm_j3.publish(-self.theta3)
+        self.arm_j4.publish(-self.theta4)
         self.arm_f1.publish(self.f1)
         self.arm_f2.publish(self.f2)
         #print(str(self.theta1)+" "+str(self.theta2)+" "+str(self.theta3)+' '+str(self.x)+' '+str(self.y)+' '+str(self.z))
@@ -357,7 +357,7 @@ class robot_arm():
                 break
     def grep(self):
         self.f1=1.0
-        self.f2=0.5
+        self.f2=1.0
         self.Contr()
         sleep(1)
     def ungrep(self):

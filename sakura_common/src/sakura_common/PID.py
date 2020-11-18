@@ -46,8 +46,8 @@ class PID():
 
 class SPPID():
 
-	err_short = 0.0
-	err_long = 0.00001
+	err_short = 1.0
+	err_long = 1.0
 
 	dsa=0.0
 	dsb=0.0

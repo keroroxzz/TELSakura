@@ -41,12 +41,24 @@ class Ballon():
 		pass
 
 	def test(self):
-		
-		self.arm.settarget(t0=0.0,t1=0.0,t2=0,t3=0.0,t4=0,tf=0,TIME=1)
-		self.arm.settarget(t0=0.45,t1=0.0,t2=0.0,t3=-1.57,t4=0,tf=0,TIME=5)
-		self.arm.settarget(t0=0.45,t1=0.0,t2=-0.5,t3=-1.57,t4=0,tf=0,TIME=1)
+
+		self.arm.settarget(t0=0.45,t1=0.6,t2=-1.4,t3=0.5,t4=0,tf=0,TIME=3)
+		self.arm.settarget(t0=0.45,t1=0.9,t2=-1.4,t3=0.6,t4=0,tf=0,TIME=2)
 		self.arm.grep()
 		self.arm.settarget(t0=0,t1=0,t2=0,t3=0,t4=0,tf=0.5,TIME=3)
+
+
+		self.arm.settarget(t0=0.4,t1=0.5,t2=-0.4,t3=0.3,t4=0,tf=0.5,TIME=2)
+		self.arm.ungrep()
+		self.arm.settarget(t0=0,t1=0,t2=0,t3=0,t4=0,tf=0,TIME=2)
+'''
+		self.arm.settarget(t0=0.0,t1=0.0,t2=0,t3=0.0,t4=0,tf=0,TIME=1)
+		self.arm.settarget(t0=0.45,t1=0.0,t2=0.0,t3=-1.57,t4=0,tf=0,TIME=2)
+		self.arm.settarget(t0=0.45,t1=0.0,t2=-0.5,t3=-1.57,t4=0,tf=0,TIME=1)
+		self.arm.grep()
+		self.arm.settarget(t0=0.45,t1=0.0,t2=-0.5,t3=-1.57,t4=1.57,tf=0,TIME=0.2)
+		self.arm.settarget(t0=0.0,t1=0.0,t2=0,t3=0.0,t4=0,tf=0,TIME=1)
+'''
 
 ###################################
 # MAIN

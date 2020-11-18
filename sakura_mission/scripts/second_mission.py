@@ -29,9 +29,9 @@ STATUS=0
 R=robot_arm()
 
 def publish(pub,T):
-    T.linear.x=T.linear.x*0.1
-    T.linear.y=T.linear.y*0.1
-    T.angular.z=T.angular.z*0.1
+    T.linear.x=T.linear.x*0.2
+    T.linear.y=T.linear.y*0.2
+    T.angular.z=T.angular.z*0.2
     pub.publish(T)
 
 def status_callback(data):
@@ -44,7 +44,7 @@ def callback(data):
     return
     
   global start
-  grep()
+
   if(start<10):
     rot.publish(0.2)
     sleep(0.1)
@@ -67,14 +67,13 @@ def threshold_method(img):
   #cv2.waitKey(5)
 
 def grep():
-  R.settarget(t0=0.45,t1=0.6,t2=1.4,t3=0.5,t4=0,tf=0,TIME=3)
-  R.settarget(t0=0.45,t1=0.9,t2=1.4,t3=0.6,t4=0,tf=0,TIME=2)
+  R.settarget(t0=0.45,t1=0.6,t2=-1.4,t3=0.5,t4=0,tf=0,TIME=3)
+  R.settarget(t0=0.45,t1=0.9,t2=-1.4,t3=0.6,t4=0,tf=0,TIME=2)
   R.grep()
-  R.settarget(t0=0,t1=0,t2=0,t3=0,t4=0,tf=0.5,TIME=3)
-  sleep(100)
+  R.settarget(t0=0,t1=0,t2=0,t3=0,t4=0,tf=1,TIME=3)
   
 def throw():
-  R.settarget(t0=0.4,t1=0.5,t2=0.4,t3=0.3,t4=0,tf=0,TIME=2)
+  R.settarget(t0=0.4,t1=0.5,t2=-0.4,t3=0.3,t4=0,tf=1,TIME=2)
   R.ungrep()
   R.settarget(t0=0,t1=0,t2=0,t3=0,t4=0,tf=0,TIME=2)
 
@@ -93,9 +92,10 @@ def escape(img,w,h):
   elif(state==6):
     if(len(contours)>0):
       print(cv2.contourArea(contours[Id[0]]))
-      if(cv2.contourArea(contours[Id[0]])>500):
-        x2,y2=centroid(contours[Id[0]])
-        gocontrol(x2,25,False)
+      if(cv2.contourArea(contours[Id[0]])>100):
+        T=Twist()
+        T.linear.y=-0.04*5
+        publish(pub,T)
       else:
         global state
         state=state+1
@@ -149,11 +149,18 @@ def centroid(cnt):
 
 def search_small(contours,Id,w,h):
   if(len(contours)>1):
+    curr=1
     x1,y1=centroid(contours[Id[1]])
-    control(x1,y1,w,h,158)
+    while(y1<50):
+        curr=curr+1
+        if(len(contours)>curr and cv2.contourArea(contours[Id[curr]])>100):
+            x1,y1=centroid(contours[Id[curr]])
+        else:
+            break
+    control(x1,y1,w,h,143)
   elif((len(contours)>0 and cv2.contourArea(contours[Id[0]])<2000)):
     x1,y1=centroid(contours[Id[0]])
-    control(x1,y1,w,h,158)
+    control(x1,y1,w,h,143)
   else:
     print(str(len(contours))+'objects')
     control(10,0,20,100,20)
@@ -195,6 +202,7 @@ def back_until(contours,Id,w,h):
     T=Twist()
     k2=-0.03
     T.linear.x=k2*5
+    T.linear.y=-k2*5
     T.angular.z=0
     publish(pub,T)
 
@@ -256,8 +264,8 @@ def control(x,y,w,h,gh):
   kd=0.006
   k2=-0.005
   T=Twist()
-  ex=5.0
-  ey=5.0
+  ex=5
+  ey=12
   Ex=x-w/2.0
   global pEx
   dExdt=Ex-pEx

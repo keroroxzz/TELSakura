@@ -79,9 +79,9 @@ class control:
             if(data==-control_key_constant.R1):
                 self.AR=False
             if(data==control_key_constant.A):
-                self.ARM.callbackzP(0,0.1)
-            if(data==control_key_constant.Y):
                 self.ARM.callbackzP(0,-0.1)
+            if(data==control_key_constant.Y):
+                self.ARM.callbackzP(0,0.1)
             if(data==control_key_constant.X):
                 self.arm_lock=True
                 self.ARM.auto_grep()

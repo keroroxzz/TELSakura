@@ -45,7 +45,7 @@ def white_balance(img):
     imgt[:,:,2]=r
     return imgt
 
-flip=False
+flip=True
 def callback(data):
     global flip
     flip=data.data

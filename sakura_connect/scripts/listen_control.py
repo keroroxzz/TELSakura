@@ -58,8 +58,8 @@ class control:
 
     if(data==-control_key_constant.R3):
         if(self.arm_lock==True):
-            self.arm_lock=False
             self.ARM.set_tohome()
+            self.arm_lock=False
         else:
             self.arm_lock=True
             self.ARM.lock()

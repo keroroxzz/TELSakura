@@ -2,7 +2,7 @@
 import rospy
 from std_msgs.msg import String
 from std_msgs.msg import Float64,Int32
-from sensor_msgs.msg import Image
+from sensor_msgs.msg import CompressedImage,Image
 from cv_bridge import CvBridge,CvBridgeError
 from geometry_msgs.msg import Twist
 from time import sleep
@@ -29,30 +29,27 @@ STATUS=0
 R=robot_arm()
 
 def publish(pub,T):
-    print('x:%.2f y:%.2f a:%.2f'%(T.linear.x, T.linear.y, T.angular.z))
-    T.linear.x=T.linear.x*0.3
-    T.linear.y=T.linear.y*0.3
-    T.angular.z=T.angular.z*0.3
+    T.linear.x=T.linear.x*0.2
+    T.linear.y=T.linear.y*0.2
+    T.angular.z=T.angular.z*0.2
     pub.publish(T)
 
 def status_callback(data):
     global STATUS
     STATUS=data.data
-    print(STATUS)
 
 def callback(data):
   global STATUS
-
   if(STATUS!=2):
     return
     
   global start
-  #grep()
+
   if(start<10):
     rot.publish(0.2)
     sleep(0.1)
     start=start+1
-  img = bridge.imgmsg_to_cv2(data,'bgr8')
+  img=bridge.imgmsg_to_cv2(data,'bgr8')
   threshold_method(img)
 
 def threshold_method(img):
@@ -63,25 +60,25 @@ def threshold_method(img):
   output=cv2.addWeighted(output1,1.0,output2,1.0,0)
   if(state>=5):
     escape(output2,w,h)
-  '''cv2.imshow('test0',output1)
-  cv2.imshow('test1',output2)
-  cv2.imshow('ttt',img)
-  cv2.imshow('t',output)
-  cv2.waitKey(5)'''
+  #cv2.imshow('test0',output1)
+  #cv2.imshow('test1',output2)
+  #cv2.imshow('ttt',img)
+  #cv2.imshow('t',output)
+  #cv2.waitKey(5)
 
 def grep():
-  R.settarget(t0=0.45,t1=-0.6,t2=-1.4,t3=-0.5,t4=0,tf=0,TIME=3)
-  R.settarget(t0=0.45,t1=-0.9,t2=-1.4,t3=-0.6,t4=0,tf=0,TIME=2)
+  R.settarget(t0=0.45,t1=0.6,t2=-1.4,t3=0.5,t4=0,tf=0,TIME=3)
+  R.settarget(t0=0.45,t1=0.9,t2=-1.4,t3=0.6,t4=0,tf=0,TIME=2)
   R.grep()
-  R.settarget(t0=0,t1=0,t2=0,t3=0,t4=0,tf=0.5,TIME=3)
+  R.settarget(t0=0,t1=0,t2=0,t3=0,t4=0,tf=1,TIME=3)
   
 def throw():
-  R.settarget(t0=0.4,t1=-0.5,t2=-0.4,t3=-0.3,t4=0,tf=0,TIME=2)
+  R.settarget(t0=0.4,t1=0.5,t2=-0.4,t3=0.3,t4=0,tf=1,TIME=2)
   R.ungrep()
   R.settarget(t0=0,t1=0,t2=0,t3=0,t4=0,tf=0,TIME=2)
 
 def escape(img,w,h):
-  _, contours, hierachy=cv2.findContours(img.copy(),cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)
+  _,contours,hierachy=cv2.findContours(img.copy(),cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)
   area=[]
   for i in range(len(contours)):
     area.append(cv2.contourArea(contours[i]))
@@ -90,14 +87,16 @@ def escape(img,w,h):
   if(state==7):
     if(len(contours)==0):
       print("END")
+      status_pub.publish(3)
     else:
       gocontrol(50,50,True)
   elif(state==6):
     if(len(contours)>0):
       print(cv2.contourArea(contours[Id[0]]))
-      if(cv2.contourArea(contours[Id[0]])>500):
-        x2,y2=centroid(contours[Id[0]])
-        gocontrol(x2,25,False)
+      if(cv2.contourArea(contours[Id[0]])>100):
+        T=Twist()
+        T.linear.y=-0.04*5
+        publish(pub,T)
       else:
         global state
         state=state+1
@@ -129,7 +128,7 @@ def threshold_color(target,no1,no2,state1=-1,state2=-1,state3=-1,isGreen=True):
   if(state!= state1 and state!=state2 and state!=state3):
    return output
 
-  _, contours,hierachy=cv2.findContours(output.copy(),cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)
+  _,contours,hierachy=cv2.findContours(output.copy(),cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)
   area=[]
   for i in range(len(contours)):
     area.append(cv2.contourArea(contours[i]))
@@ -151,11 +150,18 @@ def centroid(cnt):
 
 def search_small(contours,Id,w,h):
   if(len(contours)>1):
+    curr=1
     x1,y1=centroid(contours[Id[1]])
-    control(x1,y1,w,h,158)
+    while(y1<50):
+        curr=curr+1
+        if(len(contours)>curr and cv2.contourArea(contours[Id[curr]])>100):
+            x1,y1=centroid(contours[Id[curr]])
+        else:
+            break
+    control(x1,y1,w,h,143)
   elif((len(contours)>0 and cv2.contourArea(contours[Id[0]])<2000)):
     x1,y1=centroid(contours[Id[0]])
-    control(x1,y1,w,h,158)
+    control(x1,y1,w,h,143)
   else:
     print(str(len(contours))+'objects')
     control(10,0,20,100,20)
@@ -214,6 +220,22 @@ def back_until_far(contours,Id,w,h):
        state=state+1
        print('next'+str(state))
 
+def back_until_escape(contours,Id,w,h):
+  print(str(len(contours))+' objectes')
+  if(len(contours)>1 and cv2.contourArea(contours[Id[0]])>2000 and cv2.contourArea(contours[Id[1]])):
+    global count
+    count=count+1
+    if(count>10):
+      global state
+      state=state+1
+      print('next'+str(state))
+  else:
+    T=Twist()
+    k2=-0.03
+    T.linear.x=k2*5
+    T.angular.z=-0.05
+    publish(pub,T)
+
 Ei=0
 def gocontrol(x,xw,Control):
   k2=-0.005
@@ -243,8 +265,8 @@ def control(x,y,w,h,gh):
   kd=0.006
   k2=-0.005
   T=Twist()
-  ex=5.0
-  ey=5.0
+  ex=5
+  ey=12
   Ex=x-w/2.0
   global pEx
   dExdt=Ex-pEx
@@ -260,7 +282,7 @@ def control(x,y,w,h,gh):
       T.linear.x=(-(y-gh)/abs(y-gh)*(0.5))
     else:
       T.linear.x=(k2*(y-gh))
-  print('go : %.2f'%(y-gh))
+  print('go'+str(y-gh))
   if(abs(x-w/2.0)<=ex and abs(y-gh)<=ey):
     T.linear.x=0
     T.angular.z=0
@@ -331,14 +353,24 @@ def tcontrol(x,y,w,h,gh):
   publish(pub,T)
 
 
-rospy.init_node('camera_getted')
+rospy.init_node('camera_getted',anonymous=True)
 bridge=CvBridge()
-
-
-status = rospy.Subscriber('/sakura/status', Int32, status_callback, queue_size=10)
-
-sub=rospy.Subscriber('/sakura/camera_image/image', Image, callback,queue_size=1)
+sub=rospy.Subscriber('/sakura/camera_image/image',Image,callback,queue_size=1)
 pub=rospy.Publisher('/sakura/cmd_vel',Twist,queue_size=10)
 rot = rospy.Publisher('/sakura/rot/command', Float64, queue_size=5)
+#Robot arm (all -pi/2 ~ +pi/2)
+arm_base = rospy.Publisher('/sakura/arm/base/command', Float64, queue_size=10)
+arm_j1 = rospy.Publisher('/sakura/arm/j1/command', Float64, queue_size=10)
+arm_j2 = rospy.Publisher('/sakura/arm/j2/command', Float64, queue_size=10)
+arm_j3 = rospy.Publisher('/sakura/arm/j3/command', Float64, queue_size=10)
+arm_j4 = rospy.Publisher('/sakura/arm/j4/command', Float64, queue_size=10)
+
+#Gripper (both 0.0 ~ 0.025)
+arm_f1 = rospy.Publisher('/sakura/arm/f1/command', Float64, queue_size=10)
+arm_f2 = rospy.Publisher('/sakura/arm/f2/command', Float64, queue_size=10)
+
+
+status = rospy.Subscriber('/sakura/status', Int32,status_callback, queue_size=10)
+status_pub = rospy.Publisher('/sakura/status', Int32, queue_size=10)
 
 rospy.spin()
